@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Konwerter Jednostek</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+    }
+  </style>
+</head>
+<body class="bg-gray-100 text-gray-900 min-h-screen p-4">
+  <div class="max-w-2xl mx-auto bg-white p-6 rounded-2xl shadow-md">
+    <h1 class="text-2xl font-bold mb-4 text-center">Konwerter Jednostek</h1>
+
+    <div class="mb-4">
+      <label class="block font-medium mb-1">Kategoria jednostek</label>
+      <select id="category" class="border rounded px-3 py-2 w-full">
+        <option value="length">Długość</option>
+        <option value="mass">Masa</option>
+        <option value="temperature">Temperatura</option>
+      </select>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div>
+        <label class="block font-medium mb-1">Z jednostki</label>
+        <select id="fromUnit" class="border rounded px-3 py-2 w-full"></select>
+        <input type="number" id="inputValue" class="border rounded px-3 py-2 w-full mt-2" placeholder="Wartość" />
+      </div>
+      <div>
+        <label class="block font-medium mb-1">Na jednostkę</label>
+        <select id="toUnit" class="border rounded px-3 py-2 w-full"></select>
+        <input type="text" id="outputValue" class="border rounded px-3 py-2 w-full mt-2 bg-gray-100" readonly />
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const units = {
+      length: {
+        meter: 1,
+        kilometer: 1000,
+        centimeter: 0.01,
+        mile: 1609.34,
+        foot: 0.3048
+      },
+      mass: {
+        gram: 1,
+        kilogram: 1000,
+        ton: 1e6,
+        pound: 453.592,
+        ounce: 28.3495
+      },
+      temperature: ['Celsius', 'Fahrenheit', 'Kelvin']
+    };
+
+    const categorySelect = document.getElementById('category');
+    const fromUnit = document.getElementById('fromUnit');
+    const toUnit = document.getElementById('toUnit');
+    const inputValue = document.getElementById('inputValue');
+    const outputValue = document.getElementById('outputValue');
+
+    categorySelect.addEventListener('change', updateUnits);
+    inputValue.addEventListener('input', convert);
+    fromUnit.addEventListener('change', convert);
+    toUnit.addEventListener('change', convert);
+
+    function updateUnits() {
+      const category = categorySelect.value;
+      fromUnit.innerHTML = '';
+      toUnit.innerHTML = '';
+
+      const categoryUnits = units[category];
+
+      if (category === 'temperature') {
+        categoryUnits.forEach(unit => {
+          fromUnit.innerHTML += `<option value="${unit}">${unit}</option>`;
+          toUnit.innerHTML += `<option value="${unit}">${unit}</option>`;
+        });
+      } else {
+        Object.keys(categoryUnits).forEach(unit => {
+          fromUnit.innerHTML += `<option value="${unit}">${unit}</option>`;
+          toUnit.innerHTML += `<option value="${unit}">${unit}</option>`;
+        });
+      }
+
+      convert();
+    }
+
+    function convert() {
+      const category = categorySelect.value;
+      const from = fromUnit.value;
+      const to = toUnit.value;
+      const value = parseFloat(inputValue.value);
+      if (isNaN(value)) {
+        outputValue.value = '';
+        return;
+      }
+
+      if (category === 'temperature') {
+        outputValue.value = convertTemperature(value, from, to).toFixed(2);
+      } else {
+        const base = value * units[category][from];
+        const result = base / units[category][to];
+        outputValue.value = result.toFixed(4);
+      }
+    }
+
+    function convertTemperature(value, from, to) {
+      if (from === to) return value;
+      let celsius;
+      if (from === 'Celsius') celsius = value;
+      if (from === 'Fahrenheit') celsius = (value - 32) * 5/9;
+      if (from === 'Kelvin') celsius = value - 273.15;
+
+      if (to === 'Celsius') return celsius;
+      if (to === 'Fahrenheit') return (celsius * 9/5) + 32;
+      if (to === 'Kelvin') return celsius + 273.15;
+    }
+
+    // Initial load
+    updateUnits();
+  </script>
+</body>
+</html>
